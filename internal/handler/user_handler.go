@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Alfian57/belajar-golang/internal/dto"
+	errs "github.com/Alfian57/belajar-golang/internal/errors"
 	"github.com/Alfian57/belajar-golang/internal/response"
 	"github.com/Alfian57/belajar-golang/internal/service"
 	"github.com/gin-gonic/gin"
@@ -23,7 +24,7 @@ func NewUserHandler(s *service.UserService) *UserHandler {
 func (s *UserHandler) GetAllUsers(ctx *gin.Context) {
 	users, err := s.service.GetAllUsers(ctx)
 	if err != nil {
-		response.WriteErrorResponse(ctx, err)
+		response.WriteErrorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -39,7 +40,7 @@ func (s *UserHandler) CreateUser(ctx *gin.Context) {
 
 	err := s.service.CreateUser(ctx, request)
 	if err != nil {
-		response.WriteErrorResponse(ctx, err)
+		response.WriteErrorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -51,8 +52,13 @@ func (s *UserHandler) GetUserByID(ctx *gin.Context) {
 
 	user, err := s.service.GetUserByID(ctx, id)
 	if err != nil {
-		response.WriteErrorResponse(ctx, err)
-		return
+		if err == errs.ErrUserNotFound {
+			response.WriteErrorResponse(ctx, http.StatusNotFound, err)
+			return
+		} else {
+			response.WriteErrorResponse(ctx, http.StatusInternalServerError, err)
+			return
+		}
 	}
 
 	response.WriteDataResponse(ctx, http.StatusOK, user)
@@ -67,14 +73,14 @@ func (s *UserHandler) UpdateUser(ctx *gin.Context) {
 
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		response.WriteErrorResponse(ctx, err)
+		response.WriteErrorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 	request.ID = id
 
 	err = s.service.UpdateUser(ctx, request)
 	if err != nil {
-		response.WriteErrorResponse(ctx, err)
+		response.WriteErrorResponse(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -86,8 +92,13 @@ func (s *UserHandler) DeleteUser(ctx *gin.Context) {
 
 	err := s.service.DeleteUser(ctx, id)
 	if err != nil {
-		response.WriteErrorResponse(ctx, err)
-		return
+		if err == errs.ErrUserNotFound {
+			response.WriteErrorResponse(ctx, http.StatusNotFound, err)
+			return
+		} else {
+			response.WriteErrorResponse(ctx, http.StatusInternalServerError, err)
+			return
+		}
 	}
 
 	response.WriteMessageResponse(ctx, http.StatusOK, "user successfully deleted")

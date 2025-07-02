@@ -5,7 +5,7 @@ import (
 )
 
 func NewRouter() *gin.Engine {
-	router := gin.Default()
+	router := gin.New()
 
 	api := router.Group("api")
 

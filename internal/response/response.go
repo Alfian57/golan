@@ -1,8 +1,6 @@
 package response
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,7 +14,7 @@ func WriteMessageResponse(ctx *gin.Context, statusCode int, message string) {
 	ctx.JSON(statusCode, gin.H{"message": message})
 }
 
-func WriteErrorResponse(ctx *gin.Context, err error) {
+func WriteErrorResponse(ctx *gin.Context, statusCode int, err error) {
 	ctx.Header("Content-Type", "application/json")
-	ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	ctx.JSON(statusCode, gin.H{"error": err.Error()})
 }

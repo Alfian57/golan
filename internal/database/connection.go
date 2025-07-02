@@ -12,7 +12,7 @@ import (
 var DB *sqlx.DB
 
 func Init(config config.DatabaseConfig) {
-	databaseConnection := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", config.Username, config.Password, config.Host, config.Port, config.Name)
+	databaseConnection := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true", config.Username, config.Password, config.Host, config.Port, config.Name)
 
 	var err error
 	DB, err = sqlx.Open("mysql", databaseConnection)
