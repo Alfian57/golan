@@ -3,7 +3,6 @@ package handler
 import (
 	"net/http"
 
-	"github.com/Alfian57/belajar-golang/internal/config"
 	"github.com/Alfian57/belajar-golang/internal/dto"
 	"github.com/Alfian57/belajar-golang/internal/response"
 	"github.com/Alfian57/belajar-golang/internal/service"
@@ -72,8 +71,6 @@ func (s *UserHandler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 	request.ID = id
-
-	config.Logger.Infoln(request.ID, request.Username)
 
 	err = s.service.UpdateUser(ctx, request)
 	if err != nil {

@@ -4,17 +4,26 @@ import (
 	"fmt"
 
 	"github.com/Alfian57/belajar-golang/internal/config"
+	"github.com/Alfian57/belajar-golang/internal/database"
+	"github.com/Alfian57/belajar-golang/internal/logger"
 	"github.com/Alfian57/belajar-golang/internal/router"
+	"github.com/Alfian57/belajar-golang/internal/validation"
 )
 
 func main() {
 	config.LoadEnv()
-	config.LoadValidator()
-	config.LoadLogger()
-	config.LoadDB()
+
+	config, err := config.Load()
+	if err != nil {
+		panic(fmt.Sprintf("Failed to load config: %v", err))
+	}
+
+	database.Init(config.Database)
+	logger.Init()
+	validation.Init()
 
 	router := router.NewRouter()
-	appUrl := config.GetEnv("APP_URL", "localhost:8000")
-	config.Logger.Infoln(fmt.Sprintf("App running on %s", appUrl))
+	appUrl := config.Server.Url
+	logger.Log.Infoln(fmt.Sprintf("App running on %s", appUrl))
 	router.Run(appUrl)
 }
