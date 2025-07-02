@@ -1,0 +1,13 @@
+package config
+
+import (
+	"go.uber.org/zap"
+)
+
+var Logger *zap.SugaredLogger
+
+func LoadLogger() {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+	Logger = logger.Sugar()
+}
