@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/Alfian57/belajar-golang/internal/dto"
 	errs "github.com/Alfian57/belajar-golang/internal/errors"
@@ -22,6 +23,9 @@ func NewUserService(r *repository.UserRepository) *UserService {
 }
 
 func (s *UserService) GetAllUsers(ctx context.Context) ([]model.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	users, err := s.repository.GetAll(ctx)
 	if err != nil {
 		logger.Log.Errorw("failed to get all users", "error", err)
@@ -31,6 +35,9 @@ func (s *UserService) GetAllUsers(ctx context.Context) ([]model.User, error) {
 }
 
 func (s *UserService) CreateUser(ctx context.Context, request dto.CreateUserRequest) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	_, err := s.repository.GetByUsername(ctx, request.Username)
 	if err != nil && err != errs.ErrUserNotFound {
 		logger.Log.Errorw("failed to check existing username", "username", request.Username, "error", err)
@@ -64,10 +71,13 @@ func (s *UserService) CreateUser(ctx context.Context, request dto.CreateUserRequ
 }
 
 func (s *UserService) GetUserByID(ctx context.Context, id string) (model.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	user, err := s.repository.GetByID(ctx, id)
 	if err != nil {
 		if err == errs.ErrUserNotFound {
-			return model.User{}, err // Return the predefined error
+			return model.User{}, err
 		}
 		logger.Log.Errorw("failed to get user by ID", "id", id, "error", err)
 		return model.User{}, errs.NewAppError(500, "failed to retrieve user", err)
@@ -76,7 +86,9 @@ func (s *UserService) GetUserByID(ctx context.Context, id string) (model.User, e
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, request dto.UpdateUserRequest) error {
-	// Check if user exists first
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	_, err := s.repository.GetByID(ctx, request.ID.String())
 	if err != nil {
 		if err == errs.ErrUserNotFound {
@@ -86,14 +98,12 @@ func (s *UserService) UpdateUser(ctx context.Context, request dto.UpdateUserRequ
 		return errs.NewAppError(500, "failed to validate user", err)
 	}
 
-	// Check if new username already exists (if different from current)
 	existingUser, err := s.repository.GetByUsername(ctx, request.Username)
 	if err != nil && err != errs.ErrUserNotFound {
 		logger.Log.Errorw("failed to check username availability", "username", request.Username, "error", err)
 		return errs.NewAppError(500, "failed to validate username", err)
 	}
 
-	// If username exists and belongs to different user
 	if err == nil && existingUser.ID != request.ID {
 		fieldError := errs.NewFieldError("username", "username already exists")
 		return errs.NewValidationError([]errs.FieldError{fieldError})
@@ -114,6 +124,9 @@ func (s *UserService) UpdateUser(ctx context.Context, request dto.UpdateUserRequ
 }
 
 func (s *UserService) DeleteUser(ctx context.Context, id string) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	if err := s.repository.Delete(ctx, id); err != nil {
 		if err == errs.ErrUserNotFound {
 			return err
