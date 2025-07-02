@@ -2,12 +2,14 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Alfian57/belajar-golang/internal/dto"
 	"github.com/Alfian57/belajar-golang/internal/logger"
 	"github.com/Alfian57/belajar-golang/internal/model"
 	"github.com/Alfian57/belajar-golang/internal/repository"
 	"github.com/Alfian57/belajar-golang/internal/utils/hash"
+	"github.com/google/uuid"
 )
 
 type UserService struct {
@@ -28,6 +30,16 @@ func (s *UserService) GetAllUsers(ctx context.Context) ([]model.User, error) {
 
 func (s *UserService) CreateUser(ctx context.Context, request dto.CreateUserRequest) error {
 	logger.Log.Infoln("Creating a new user in the database in service layer", request)
+
+	existingUser, err := s.repository.GetByUsername(ctx, request.Username)
+	if err != nil {
+		return err
+	}
+
+	if existingUser.ID != uuid.Nil {
+		return errors.New("username already exist")
+	}
+
 	hashedPass, err := hash.HashPassword(request.Password)
 	if err != nil {
 		return err

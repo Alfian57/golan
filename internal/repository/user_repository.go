@@ -59,6 +59,23 @@ func (r *UserRepository) GetByID(ctx context.Context, id string) (model.User, er
 	return user, nil
 }
 
+func (r *UserRepository) GetByUsername(ctx context.Context, username string) (model.User, error) {
+	logger.Log.Infoln("Fetching user by Username from the database in repository layer", username)
+
+	user := model.User{}
+	query := "SELECT id, username, created_at, updated_at FROM users WHERE username = ?"
+
+	err := r.db.GetContext(ctx, &user, query, username)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return user, errs.ErrUserNotFound
+		}
+		return user, err
+	}
+
+	return user, nil
+}
+
 func (r *UserRepository) Update(ctx context.Context, user *model.User) error {
 	logger.Log.Infoln("Updating user in the database in repository layer", user)
 

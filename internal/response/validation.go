@@ -24,11 +24,11 @@ func WriteValidationError(c *gin.Context, err error) {
 				Message: validationMessage(fe),
 			}
 		}
-		c.JSON(http.StatusBadRequest, gin.H{"errors": out})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"errors": out})
 		return
 	}
 
-	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 }
 
 func validationMessage(fe validator.FieldError) string {
@@ -48,11 +48,22 @@ func validationMessage(fe validator.FieldError) string {
 
 func toSnakeCase(str string) string {
 	var sb strings.Builder
-	for i, r := range str {
-		if i > 0 && r >= 'A' && r <= 'Z' {
+	runes := []rune(str)
+
+	for i := 0; i < len(runes); i++ {
+		if i > 0 && isUpper(runes[i]) && (isLower(runes[i-1]) || (i+1 < len(runes) && isLower(runes[i+1]))) {
 			sb.WriteRune('_')
 		}
-		sb.WriteRune(r)
+		sb.WriteRune(runes[i])
 	}
+
 	return strings.ToLower(sb.String())
+}
+
+func isUpper(r rune) bool {
+	return r >= 'A' && r <= 'Z'
+}
+
+func isLower(r rune) bool {
+	return r >= 'a' && r <= 'z'
 }
