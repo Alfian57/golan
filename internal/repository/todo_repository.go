@@ -2,7 +2,11 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
+	"github.com/Alfian57/belajar-golang/internal/database"
+	errs "github.com/Alfian57/belajar-golang/internal/errors"
 	"github.com/Alfian57/belajar-golang/internal/model"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -12,8 +16,8 @@ type TodoRepository struct {
 	db *sqlx.DB
 }
 
-func NewTodoRepository(db *sqlx.DB) *TodoRepository {
-	return &TodoRepository{db: db}
+func NewTodoRepository() *TodoRepository {
+	return &TodoRepository{db: database.DB}
 }
 
 func (r *TodoRepository) GetAll(ctx context.Context) ([]model.Todo, error) {
@@ -34,6 +38,9 @@ func (r *TodoRepository) GetByID(ctx context.Context, id string) (model.Todo, er
 
 	err := r.db.GetContext(ctx, &todo, query, id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return todo, errs.ErrTodoNotFound
+		}
 		return todo, err
 	}
 
@@ -59,6 +66,13 @@ func (r *TodoRepository) Update(ctx context.Context, todo *model.Todo) error {
 
 func (r *TodoRepository) Delete(ctx context.Context, id string) error {
 	query := "DELETE FROM todos WHERE id = ?"
-	_, err := r.db.ExecContext(ctx, query, id)
+	result, err := r.db.ExecContext(ctx, query, id)
+
+	rowsAffected, err := result.RowsAffected()
+
+	if rowsAffected == 0 {
+		return errs.ErrTodoNotFound
+	}
+
 	return err
 }

@@ -39,8 +39,11 @@ func (e *ValidationError) Error() string {
 }
 
 var (
-	ErrUserNotFound   = &AppError{Code: http.StatusNotFound, Message: "user not found"}
-	ErrUsernameExist  = &AppError{Code: http.StatusConflict, Message: "username already exists"}
+	ErrUserNotFound  = &AppError{Code: http.StatusNotFound, Message: "user not found"}
+	ErrUsernameExist = &AppError{Code: http.StatusUnprocessableEntity, Message: "username already exists"}
+
+	ErrTodoNotFound = &AppError{Code: http.StatusNotFound, Message: "todo not found"}
+
 	ErrInternalServer = &AppError{Code: http.StatusInternalServerError, Message: "internal server error"}
 	ErrBadRequest     = &AppError{Code: http.StatusBadRequest, Message: "bad request"}
 	ErrUnauthorized   = &AppError{Code: http.StatusUnauthorized, Message: "unauthorized"}

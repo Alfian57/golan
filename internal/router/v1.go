@@ -18,4 +18,15 @@ func RegisterV1Route(router *gin.RouterGroup) {
 	router.GET("/users/:id", userHandler.GetUserByID)
 	router.PUT("/users/:id", userHandler.UpdateUser)
 	router.DELETE("/users/:id", userHandler.DeleteUser)
+	// router.DELETE("/users/:id/todos", userHandler.GetUserTodos)
+
+	todoRepository := repository.NewTodoRepository()
+	todoService := service.NewTodoService(todoRepository, userRepository)
+	todoHandler := handler.NewTodoHandler(todoService)
+
+	router.GET("/todos", todoHandler.GetAlltodos)
+	router.POST("/todos", todoHandler.CreateTodo)
+	router.GET("/todos/:id", todoHandler.GetTodoByID)
+	router.PUT("/todos/:id", todoHandler.UpdateTodo)
+	router.DELETE("/todos/:id", todoHandler.DeleteTodo)
 }
