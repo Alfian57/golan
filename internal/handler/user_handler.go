@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/Alfian57/belajar-golang/internal/dto"
@@ -40,8 +41,14 @@ func (s *UserHandler) CreateUser(ctx *gin.Context) {
 
 	err := s.service.CreateUser(ctx, request)
 	if err != nil {
-		response.WriteErrorResponse(ctx, http.StatusInternalServerError, err)
-		return
+		var validationErr errs.ErrValidationErrors
+		if errors.As(err, &validationErr) {
+			response.WriteValidationError(ctx, err)
+			return
+		} else {
+			response.WriteErrorResponse(ctx, http.StatusInternalServerError, err)
+			return
+		}
 	}
 
 	response.WriteMessageResponse(ctx, http.StatusCreated, "user successfully created")

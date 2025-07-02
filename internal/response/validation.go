@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	errs "github.com/Alfian57/belajar-golang/internal/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -15,10 +16,23 @@ type FieldError struct {
 }
 
 func WriteValidationError(c *gin.Context, err error) {
-	var ve validator.ValidationErrors
-	if errors.As(err, &ve) {
-		out := make([]FieldError, len(ve))
-		for i, fe := range ve {
+	var customValidationErr errs.ErrValidationErrors
+	if errors.As(err, &customValidationErr) {
+		out := make([]FieldError, len(customValidationErr.Errors))
+		for i, fe := range customValidationErr.Errors {
+			out[i] = FieldError{
+				Field:   toSnakeCase(fe.Field),
+				Message: fe.Error,
+			}
+		}
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"errors": out})
+		return
+	}
+
+	var validationErr validator.ValidationErrors
+	if errors.As(err, &validationErr) {
+		out := make([]FieldError, len(validationErr))
+		for i, fe := range validationErr {
 			out[i] = FieldError{
 				Field:   toSnakeCase(fe.Field()),
 				Message: validationMessage(fe),

@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"errors"
 
 	"github.com/Alfian57/belajar-golang/internal/dto"
+	errs "github.com/Alfian57/belajar-golang/internal/errors"
 	"github.com/Alfian57/belajar-golang/internal/logger"
 	"github.com/Alfian57/belajar-golang/internal/model"
 	"github.com/Alfian57/belajar-golang/internal/repository"
@@ -37,7 +37,13 @@ func (s *UserService) CreateUser(ctx context.Context, request dto.CreateUserRequ
 	}
 
 	if existingUser.ID != uuid.Nil {
-		return errors.New("username already exist")
+		fe := errs.FieldError{
+			Field: "username",
+			Error: "username already exists",
+		}
+		return errs.ErrValidationErrors{
+			Errors: []errs.FieldError{fe},
+		}
 	}
 
 	hashedPass, err := hash.HashPassword(request.Password)
