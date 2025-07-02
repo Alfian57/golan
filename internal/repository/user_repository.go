@@ -7,7 +7,6 @@ import (
 
 	"github.com/Alfian57/belajar-golang/internal/database"
 	errs "github.com/Alfian57/belajar-golang/internal/errors"
-	"github.com/Alfian57/belajar-golang/internal/logger"
 	"github.com/Alfian57/belajar-golang/internal/model"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -22,8 +21,6 @@ func NewUserRepository() *UserRepository {
 }
 
 func (r *UserRepository) GetAll(ctx context.Context) ([]model.User, error) {
-	logger.Log.Infoln("Fetching all users from the database in repository layer")
-
 	users := []model.User{}
 	query := "SELECT id, username, created_at, updated_at FROM users"
 
@@ -33,8 +30,6 @@ func (r *UserRepository) GetAll(ctx context.Context) ([]model.User, error) {
 }
 
 func (r *UserRepository) Create(ctx context.Context, user *model.User) error {
-	logger.Log.Infoln("Creating a new user in the database in repository layer", user)
-
 	query := "INSERT INTO users(id, username, password) VALUES (?, ?, ?)"
 
 	_, err := r.db.ExecContext(ctx, query, uuid.New().String(), user.Username, user.Password)
@@ -43,8 +38,6 @@ func (r *UserRepository) Create(ctx context.Context, user *model.User) error {
 }
 
 func (r *UserRepository) GetByID(ctx context.Context, id string) (model.User, error) {
-	logger.Log.Infoln("Fetching user by ID from the database in repository layer", id)
-
 	user := model.User{}
 	query := "SELECT id, username, created_at, updated_at FROM users WHERE id = ?"
 
@@ -60,8 +53,6 @@ func (r *UserRepository) GetByID(ctx context.Context, id string) (model.User, er
 }
 
 func (r *UserRepository) GetByUsername(ctx context.Context, username string) (model.User, error) {
-	logger.Log.Infoln("Fetching user by Username from the database in repository layer", username)
-
 	user := model.User{}
 	query := "SELECT id, username, created_at, updated_at FROM users WHERE username = ?"
 
@@ -77,16 +68,12 @@ func (r *UserRepository) GetByUsername(ctx context.Context, username string) (mo
 }
 
 func (r *UserRepository) Update(ctx context.Context, user *model.User) error {
-	logger.Log.Infoln("Updating user in the database in repository layer", user)
-
 	query := "UPDATE users SET username = ? WHERE id = ?"
 	_, err := r.db.ExecContext(ctx, query, user.Username, user.ID.String())
 	return err
 }
 
 func (r *UserRepository) Delete(ctx context.Context, id string) error {
-	logger.Log.Infoln("Deleting user from the database in repository layer", id)
-
 	query := "DELETE FROM users WHERE id = ?"
 	result, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {

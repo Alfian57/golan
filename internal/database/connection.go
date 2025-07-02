@@ -18,7 +18,7 @@ func Init(config config.DatabaseConfig) {
 	DB, err = sqlx.Open("mysql", databaseConnection)
 	if err != nil {
 		messageLog := fmt.Sprintf("error opening database connection: %v", err)
-		logger.Log.Errorln(messageLog)
+		logger.Log.Fatalf(messageLog)
 	}
 
 	if err = DB.Ping(); err != nil {
