@@ -9,16 +9,15 @@ import (
 	"github.com/Alfian57/belajar-golang/internal/logger"
 	"github.com/Alfian57/belajar-golang/internal/model"
 	"github.com/Alfian57/belajar-golang/internal/repository"
-	"github.com/Alfian57/belajar-golang/internal/utils/hash"
 )
 
 type UserService struct {
-	repository *repository.UserRepository
+	userRepository *repository.UserRepository
 }
 
 func NewUserService(r *repository.UserRepository) *UserService {
 	return &UserService{
-		repository: r,
+		userRepository: r,
 	}
 }
 
@@ -26,7 +25,7 @@ func (s *UserService) GetAllUsers(ctx context.Context) ([]model.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	users, err := s.repository.GetAll(ctx)
+	users, err := s.userRepository.GetAll(ctx)
 	if err != nil {
 		logger.Log.Errorw("failed to get all users", "error", err)
 		return nil, errs.NewAppError(500, "failed to retrieve users", err)
@@ -38,7 +37,7 @@ func (s *UserService) CreateUser(ctx context.Context, request dto.CreateUserRequ
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	_, err := s.repository.GetByUsername(ctx, request.Username)
+	_, err := s.userRepository.GetByUsername(ctx, request.Username)
 	if err != nil && err != errs.ErrUserNotFound {
 		logger.Log.Errorw("failed to check existing username", "username", request.Username, "error", err)
 		return errs.NewAppError(500, "failed to validate username", err)
@@ -50,18 +49,16 @@ func (s *UserService) CreateUser(ctx context.Context, request dto.CreateUserRequ
 		return errs.NewValidationError([]errs.FieldError{fieldError})
 	}
 
-	hashedPass, err := hash.HashPassword(request.Password)
+	user := model.User{
+		Username: request.Username,
+	}
+	err = user.SetHashedPassword(request.Password)
 	if err != nil {
 		logger.Log.Errorw("failed to hash password", "error", err)
 		return errs.NewAppError(500, "failed to process password", err)
 	}
 
-	user := model.User{
-		Username: request.Username,
-		Password: hashedPass,
-	}
-
-	if err := s.repository.Create(ctx, &user); err != nil {
+	if err := s.userRepository.Create(ctx, &user); err != nil {
 		logger.Log.Errorw("failed to create user", "username", request.Username, "error", err)
 		return errs.NewAppError(500, "failed to create user", err)
 	}
@@ -74,7 +71,7 @@ func (s *UserService) GetUserByID(ctx context.Context, id string) (model.User, e
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	user, err := s.repository.GetByID(ctx, id)
+	user, err := s.userRepository.GetByID(ctx, id)
 	if err != nil {
 		if err == errs.ErrUserNotFound {
 			return model.User{}, err
@@ -89,7 +86,7 @@ func (s *UserService) UpdateUser(ctx context.Context, request dto.UpdateUserRequ
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	_, err := s.repository.GetByID(ctx, request.ID.String())
+	_, err := s.userRepository.GetByID(ctx, request.ID.String())
 	if err != nil {
 		if err == errs.ErrUserNotFound {
 			return err
@@ -98,7 +95,7 @@ func (s *UserService) UpdateUser(ctx context.Context, request dto.UpdateUserRequ
 		return errs.NewAppError(500, "failed to validate user", err)
 	}
 
-	existingUser, err := s.repository.GetByUsername(ctx, request.Username)
+	existingUser, err := s.userRepository.GetByUsername(ctx, request.Username)
 	if err != nil && err != errs.ErrUserNotFound {
 		logger.Log.Errorw("failed to check username availability", "username", request.Username, "error", err)
 		return errs.NewAppError(500, "failed to validate username", err)
@@ -114,7 +111,7 @@ func (s *UserService) UpdateUser(ctx context.Context, request dto.UpdateUserRequ
 		Username: request.Username,
 	}
 
-	if err := s.repository.Update(ctx, &user); err != nil {
+	if err := s.userRepository.Update(ctx, &user); err != nil {
 		logger.Log.Errorw("failed to update user", "id", request.ID, "error", err)
 		return errs.NewAppError(500, "failed to update user", err)
 	}
@@ -127,7 +124,7 @@ func (s *UserService) DeleteUser(ctx context.Context, id string) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	if err := s.repository.Delete(ctx, id); err != nil {
+	if err := s.userRepository.Delete(ctx, id); err != nil {
 		if err == errs.ErrUserNotFound {
 			return err
 		}

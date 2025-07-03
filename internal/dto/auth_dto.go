@@ -1,14 +1,12 @@
 package dto
 
-import "github.com/google/uuid"
+type LoginRequest struct {
+	Username string `form:"username" binding:"required"`
+	Password string `form:"password" binding:"required"`
+}
 
-type CreateUserRequest struct {
+type RegisterRequest struct {
 	Username             string `form:"username" binding:"required,min=3,max=100"`
 	Password             string `form:"password" binding:"required,min=8"`
 	PasswordConfirmation string `form:"password_confirmation" binding:"required,eqfield=Password"`
-}
-
-type UpdateUserRequest struct {
-	ID       uuid.UUID `form:"id"`
-	Username string    `form:"username" binding:"required,min=3"`
 }

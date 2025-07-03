@@ -39,6 +39,8 @@ func (e *ValidationError) Error() string {
 }
 
 var (
+	ErrRefreshTokenNotFound = &AppError{Code: http.StatusNotFound, Message: "refresh token not found"}
+
 	ErrUserNotFound  = &AppError{Code: http.StatusNotFound, Message: "user not found"}
 	ErrUsernameExist = &AppError{Code: http.StatusUnprocessableEntity, Message: "username already exists"}
 

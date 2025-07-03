@@ -3,7 +3,7 @@ package dto
 import "github.com/google/uuid"
 
 type CreateTodoRequest struct {
-	Todo   string `form:"todo" binding:"required,min=3"`
+	Todo   string `form:"todo" binding:"required,min=3,max=100"`
 	UserID string `form:"user_id" binding:"required"`
 }
 

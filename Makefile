@@ -6,7 +6,7 @@ DATABASE_URL = "mysql://$$DB_USERNAME:$$DB_PASSWORD@tcp($$DB_HOST:$$DB_PORT)/$$D
 run:
 	air
 
-make-migration:
+migrate-create:
 	@read -p "Enter migration name (use underscore): " name; \
 	migrate create -ext sql -dir migrations -seq $$name
 
