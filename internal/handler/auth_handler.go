@@ -26,7 +26,7 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	creds, err := h.service.Login(ctx, request)
+	credentials, err := h.service.Login(ctx, request)
 	if err != nil {
 		response.WriteErrorResponse(ctx, err)
 		return
@@ -35,8 +35,8 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 	accessTokenMaxAge := 15 * 60        // 15 minutes in seconds
 	refreshTokenMaxAge := 7 * 24 * 3600 // 7 days in seconds
 
-	ctx.SetCookie("access_token", creds["access_token"], accessTokenMaxAge, "/", "", true, true)
-	ctx.SetCookie("refresh_token", creds["refresh_token"], refreshTokenMaxAge, "/", "", true, true)
+	ctx.SetCookie("access_token", credentials.AccessToken, accessTokenMaxAge, "/", "", true, true)
+	ctx.SetCookie("refresh_token", credentials.RefreshToken, refreshTokenMaxAge, "/", "", true, true)
 
 	response.WriteMessageResponse(ctx, http.StatusOK, "user successfully logged in")
 }
@@ -63,7 +63,7 @@ func (h *AuthHandler) Refresh(ctx *gin.Context) {
 		return
 	}
 
-	creds, err := h.service.Refresh(ctx, refreshToken)
+	credentials, err := h.service.Refresh(ctx, refreshToken)
 	if err != nil {
 		response.WriteErrorResponse(ctx, err)
 		return
@@ -72,8 +72,8 @@ func (h *AuthHandler) Refresh(ctx *gin.Context) {
 	accessTokenMaxAge := 15 * 60        // 15 minutes in seconds
 	refreshTokenMaxAge := 7 * 24 * 3600 // 7 days in seconds
 
-	ctx.SetCookie("access_token", creds["access_token"], accessTokenMaxAge, "/", "", true, true)
-	ctx.SetCookie("refresh_token", creds["refresh_token"], refreshTokenMaxAge, "/", "", true, true)
+	ctx.SetCookie("access_token", credentials.AccessToken, accessTokenMaxAge, "/", "", true, true)
+	ctx.SetCookie("refresh_token", credentials.RefreshToken, refreshTokenMaxAge, "/", "", true, true)
 
 	response.WriteMessageResponse(ctx, http.StatusOK, "token successfully refreshed")
 }

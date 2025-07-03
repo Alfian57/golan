@@ -10,3 +10,8 @@ type RegisterRequest struct {
 	Password             string `form:"password" binding:"required,min=8"`
 	PasswordConfirmation string `form:"password_confirmation" binding:"required,eqfield=Password"`
 }
+
+type Credentials struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}

@@ -26,30 +26,32 @@ func NewAuthService(userRepository *repository.UserRepository, refreshTokenRepos
 	}
 }
 
-func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (map[string]string, error) {
+func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (dto.Credentials, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
+
+	credentials := dto.Credentials{}
 
 	user, err := s.userRepository.GetByUsername(ctx, req.Username)
 	if err != nil {
 		if err == errs.ErrUserNotFound {
-			return nil, errs.NewAppError(http.StatusUnauthorized, "username or password is incorrect", err)
+			return credentials, errs.NewAppError(http.StatusUnauthorized, "username or password is incorrect", err)
 		}
-		return nil, errs.NewAppError(http.StatusInternalServerError, "failed to get user", err)
+		return credentials, errs.NewAppError(http.StatusInternalServerError, "failed to get user", err)
 	}
 
 	if err := hash.CheckPasswordHash(req.Password, user.Password); err != nil {
-		return nil, errs.NewAppError(http.StatusUnauthorized, "username or password is incorrect", err)
+		return credentials, errs.NewAppError(http.StatusUnauthorized, "username or password is incorrect", err)
 	}
 
 	accessToken, err := jwt.CreateAccessToken(user)
 	if err != nil {
-		return nil, errs.NewAppError(http.StatusInternalServerError, "failed to create access token", err)
+		return credentials, errs.NewAppError(http.StatusInternalServerError, "failed to create access token", err)
 	}
 
 	refreshToken, err := jwt.CreateRefreshToken(user)
 	if err != nil {
-		return nil, errs.NewAppError(http.StatusInternalServerError, "failed to create refresh token", err)
+		return credentials, errs.NewAppError(http.StatusInternalServerError, "failed to create refresh token", err)
 	}
 
 	rt := &model.RefreshToken{
@@ -58,14 +60,13 @@ func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (map[stri
 		ExpiresAt: time.Now().Add(7 * 24 * time.Hour).Unix(),
 	}
 	if err := s.refreshTokenRepository.Create(ctx, rt); err != nil {
-		return nil, errs.NewAppError(http.StatusInternalServerError, "failed to save refresh token", err)
+		return credentials, errs.NewAppError(http.StatusInternalServerError, "failed to save refresh token", err)
 	}
 
-	resp := map[string]string{
-		"access_token":  accessToken,
-		"refresh_token": refreshToken,
-	}
-	return resp, nil
+	credentials.AccessToken = accessToken
+	credentials.RefreshToken = refreshToken
+
+	return credentials, nil
 }
 
 func (s *AuthService) Register(ctx context.Context, request dto.RegisterRequest) error {
@@ -102,36 +103,38 @@ func (s *AuthService) Register(ctx context.Context, request dto.RegisterRequest)
 	return nil
 }
 
-func (s *AuthService) Refresh(ctx context.Context, refreshTokenParam string) (map[string]string, error) {
+func (s *AuthService) Refresh(ctx context.Context, refreshTokenParam string) (dto.Credentials, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
+
+	credentials := dto.Credentials{}
 
 	refreshToken, err := s.refreshTokenRepository.GetByTokenHash(ctx, refreshTokenParam)
 	if err != nil {
 		if err == errs.ErrRefreshTokenNotFound {
-			return nil, errs.NewAppError(http.StatusUnauthorized, "refresh token not valid", err)
+			return credentials, errs.NewAppError(http.StatusUnauthorized, "refresh token not valid", err)
 		}
-		return nil, errs.NewAppError(http.StatusInternalServerError, "failed to get refresh token", err)
+		return credentials, errs.NewAppError(http.StatusInternalServerError, "failed to get refresh token", err)
 	}
 
 	user, err := s.userRepository.GetByID(ctx, refreshToken.UserID)
 	if err != nil {
-		return nil, errs.NewAppError(http.StatusInternalServerError, "failed to get user", err)
+		return credentials, errs.NewAppError(http.StatusInternalServerError, "failed to get user", err)
 	}
 
 	err = s.refreshTokenRepository.DeleteByTokenHash(ctx, refreshTokenParam)
 	if err != nil {
-		return nil, errs.NewAppError(http.StatusInternalServerError, "failed to delete refresh token", err)
+		return credentials, errs.NewAppError(http.StatusInternalServerError, "failed to delete refresh token", err)
 	}
 
 	newAccessToken, err := jwt.CreateAccessToken(user)
 	if err != nil {
-		return nil, errs.NewAppError(http.StatusInternalServerError, "failed to create access token", err)
+		return credentials, errs.NewAppError(http.StatusInternalServerError, "failed to create access token", err)
 	}
 
 	newRefreshToken, err := jwt.CreateRefreshToken(user)
 	if err != nil {
-		return nil, errs.NewAppError(http.StatusInternalServerError, "failed to create refresh token", err)
+		return credentials, errs.NewAppError(http.StatusInternalServerError, "failed to create refresh token", err)
 	}
 
 	rt := &model.RefreshToken{
@@ -140,14 +143,13 @@ func (s *AuthService) Refresh(ctx context.Context, refreshTokenParam string) (ma
 		ExpiresAt: time.Now().Add(7 * 24 * time.Hour).Unix(),
 	}
 	if err := s.refreshTokenRepository.Create(ctx, rt); err != nil {
-		return nil, errs.NewAppError(http.StatusInternalServerError, "failed to save refresh token", err)
+		return credentials, errs.NewAppError(http.StatusInternalServerError, "failed to save refresh token", err)
 	}
 
-	resp := map[string]string{
-		"access_token":  newAccessToken,
-		"refresh_token": newRefreshToken,
-	}
-	return resp, nil
+	credentials.AccessToken = newAccessToken
+	credentials.RefreshToken = newRefreshToken
+
+	return credentials, nil
 }
 
 func (s *AuthService) Logout(ctx context.Context, refreshToken string) error {
