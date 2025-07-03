@@ -1,27 +1,16 @@
 package router
 
 import (
-	"github.com/Alfian57/belajar-golang/internal/handler"
+	"github.com/Alfian57/belajar-golang/internal/di"
 	"github.com/Alfian57/belajar-golang/internal/middleware"
-	"github.com/Alfian57/belajar-golang/internal/repository"
-	"github.com/Alfian57/belajar-golang/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
 func RegisterV1Route(router *gin.RouterGroup) {
 
-	refreshTokenRepository := repository.NewRefreshTokenRepository()
-
-	userRepository := repository.NewUserRepository()
-	userService := service.NewUserService(userRepository)
-	userHandler := handler.NewUserHandler(userService)
-
-	authService := service.NewAuthService(userRepository, refreshTokenRepository)
-	authHandler := handler.NewAuthHandler(authService)
-
-	todoRepository := repository.NewTodoRepository()
-	todoService := service.NewTodoService(todoRepository, userRepository)
-	todoHandler := handler.NewTodoHandler(todoService)
+	authHandler := di.InitializeAuthHandler()
+	userHandler := di.InitializeUserHandler()
+	todoHandler := di.InitializeTodoHandler()
 
 	router.POST("/login", authHandler.Login)
 	router.POST("/register", authHandler.Register)
@@ -35,8 +24,8 @@ func RegisterV1Route(router *gin.RouterGroup) {
 		users.GET("/:id", userHandler.GetUserByID)
 		users.PUT("/:id", userHandler.UpdateUser)
 		users.DELETE("/:id", userHandler.DeleteUser)
+		// router.DELETE("/users/:id/todos", userHandler.GetUserTodos)
 	}
-	// router.DELETE("/users/:id/todos", userHandler.GetUserTodos)
 
 	todos := router.Group("todos", middleware.AuthMiddleware())
 	{
