@@ -3,8 +3,14 @@ export
 
 DATABASE_URL = "mysql://$$DB_USERNAME:$$DB_PASSWORD@tcp($$DB_HOST:$$DB_PORT)/$$DB_NAME?query"
 
-run:
+dev:
 	air
+
+build:
+	go build -o ./build/main ./cmd/api
+
+start:
+	./build/main
 
 migrate-create:
 	@read -p "Enter migration name (use underscore): " name; \

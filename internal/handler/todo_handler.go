@@ -23,13 +23,19 @@ func NewTodoHandler(s *service.TodoService) *TodoHandler {
 }
 
 func (h *TodoHandler) GetAlltodos(ctx *gin.Context) {
+	var query dto.GetTodosFilter
+	if err := ctx.ShouldBindQuery(&query); err != nil {
+		response.WriteErrorResponse(ctx, err)
+		return
+	}
+
 	currentUser, exist := auth.GetCurrentUser(ctx)
 	if !exist {
 		response.WriteErrorResponse(ctx, errs.ErrUnauthorized)
 		return
 	}
 
-	todos, err := h.service.GetAllTodos(ctx, currentUser)
+	todos, err := h.service.GetAllTodos(ctx, currentUser, query)
 	if err != nil {
 		response.WriteErrorResponse(ctx, err)
 		return

@@ -23,11 +23,21 @@ func NewTodoService(todoRepository *repository.TodoRepository, userRepository *r
 	}
 }
 
-func (s *TodoService) GetAllTodos(ctx context.Context, currentUser model.User) ([]model.Todo, error) {
+func (s *TodoService) GetAllTodos(ctx context.Context, currentUser model.User, query dto.GetTodosFilter) ([]model.Todo, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	todos, err := s.todoRepository.GetAllByUser(ctx, currentUser.ID.String())
+	if query.Page == 0 {
+		query.Page = 1
+	}
+	if query.Limit == 0 {
+		query.Limit = 10
+	}
+	if query.Search == "" {
+		query.OrderType = "ASC"
+	}
+
+	todos, err := s.todoRepository.GetAllByUser(ctx, currentUser.ID.String(), query)
 
 	if err != nil {
 		logger.Log.Errorw("failed to get all todos", "error", err)

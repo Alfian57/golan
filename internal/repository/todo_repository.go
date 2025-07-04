@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/Alfian57/belajar-golang/internal/database"
+	"github.com/Alfian57/belajar-golang/internal/dto"
 	errs "github.com/Alfian57/belajar-golang/internal/errors"
 	"github.com/Alfian57/belajar-golang/internal/model"
 	"github.com/google/uuid"
@@ -20,28 +21,59 @@ func NewTodoRepository() *TodoRepository {
 	return &TodoRepository{db: database.DB}
 }
 
-func (r *TodoRepository) GetAll(ctx context.Context) ([]model.Todo, error) {
+func (r *TodoRepository) getTodos(ctx context.Context, query string, args ...any) ([]model.Todo, error) {
 	todos := []model.Todo{}
-	query := "SELECT id, todo, user_id, created_at, updated_at FROM todos"
-
-	err := r.db.SelectContext(ctx, &todos, query)
+	err := r.db.SelectContext(ctx, &todos, query, args...)
 	if err != nil {
 		return todos, err
 	}
-
 	return todos, nil
 }
 
-func (r *TodoRepository) GetAllByUser(ctx context.Context, userID string) ([]model.Todo, error) {
-	todos := []model.Todo{}
-	query := "SELECT id, todo, user_id, created_at, updated_at FROM todos WHERE user_id = ?"
+func (r *TodoRepository) GetAll(ctx context.Context, queryParam dto.GetTodosFilter) ([]model.Todo, error) {
+	query := "SELECT id, todo, user_id, created_at, updated_at FROM todos"
+	args := []any{}
 
-	err := r.db.SelectContext(ctx, &todos, query, userID)
-	if err != nil {
-		return todos, err
+	// Search
+	query += " WHERE todo LIKE ?"
+	args = append(args, "%"+queryParam.Search+"%")
+
+	// Order
+	query += " ORDER BY created_at " + queryParam.OrderType
+
+	// Pagination
+	limit := queryParam.Limit
+	offset := 0
+	if queryParam.Page > 1 {
+		offset = (queryParam.Page - 1) * limit
 	}
+	query += " LIMIT ? OFFSET ?"
+	args = append(args, limit, offset)
 
-	return todos, nil
+	return r.getTodos(ctx, query, args...)
+}
+
+func (r *TodoRepository) GetAllByUser(ctx context.Context, userID string, queryParam dto.GetTodosFilter) ([]model.Todo, error) {
+	query := "SELECT id, todo, user_id, created_at, updated_at FROM todos WHERE user_id = ?"
+	args := []any{userID}
+
+	// Search
+	query += " WHERE todo LIKE ?"
+	args = append(args, "%"+queryParam.Search+"%")
+
+	// Order
+	query += " ORDER BY created_at " + queryParam.OrderType
+
+	// Pagination
+	limit := queryParam.Limit
+	offset := 0
+	if queryParam.Page > 1 {
+		offset = (queryParam.Page - 1) * limit
+	}
+	query += " LIMIT ? OFFSET ?"
+	args = append(args, limit, offset)
+
+	return r.getTodos(ctx, query, args...)
 }
 
 func (r *TodoRepository) GetByID(ctx context.Context, id string) (model.Todo, error) {
