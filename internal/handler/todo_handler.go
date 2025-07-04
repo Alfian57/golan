@@ -5,9 +5,9 @@ import (
 
 	"github.com/Alfian57/belajar-golang/internal/dto"
 	errs "github.com/Alfian57/belajar-golang/internal/errors"
-	"github.com/Alfian57/belajar-golang/internal/model"
 	"github.com/Alfian57/belajar-golang/internal/response"
 	"github.com/Alfian57/belajar-golang/internal/service"
+	"github.com/Alfian57/belajar-golang/internal/utils/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -23,7 +23,7 @@ func NewTodoHandler(s *service.TodoService) *TodoHandler {
 }
 
 func (h *TodoHandler) GetAlltodos(ctx *gin.Context) {
-	currentUser, exist := GetCurrentUser(ctx)
+	currentUser, exist := auth.GetCurrentUser(ctx)
 	if !exist {
 		response.WriteErrorResponse(ctx, errs.ErrUnauthorized)
 		return
@@ -45,7 +45,7 @@ func (h *TodoHandler) CreateTodo(ctx *gin.Context) {
 		return
 	}
 
-	currentUser, exist := GetCurrentUser(ctx)
+	currentUser, exist := auth.GetCurrentUser(ctx)
 	if !exist {
 		response.WriteErrorResponse(ctx, errs.ErrUnauthorized)
 		return
@@ -67,7 +67,7 @@ func (h *TodoHandler) GetTodoByID(ctx *gin.Context) {
 		return
 	}
 
-	currentUser, exist := GetCurrentUser(ctx)
+	currentUser, exist := auth.GetCurrentUser(ctx)
 	if !exist {
 		response.WriteErrorResponse(ctx, errs.ErrUnauthorized)
 		return
@@ -89,7 +89,7 @@ func (h *TodoHandler) UpdateTodo(ctx *gin.Context) {
 		return
 	}
 
-	currentUser, exist := GetCurrentUser(ctx)
+	currentUser, exist := auth.GetCurrentUser(ctx)
 	if !exist {
 		response.WriteErrorResponse(ctx, errs.ErrUnauthorized)
 		return
@@ -113,7 +113,7 @@ func (h *TodoHandler) UpdateTodo(ctx *gin.Context) {
 func (h *TodoHandler) DeleteTodo(ctx *gin.Context) {
 	id := ctx.Param("id")
 
-	currentUser, exist := GetCurrentUser(ctx)
+	currentUser, exist := auth.GetCurrentUser(ctx)
 	if !exist {
 		response.WriteErrorResponse(ctx, errs.ErrUnauthorized)
 		return
@@ -130,13 +130,4 @@ func (h *TodoHandler) DeleteTodo(ctx *gin.Context) {
 	}
 
 	response.WriteMessageResponse(ctx, http.StatusOK, "todo successfully deleted")
-}
-
-func GetCurrentUser(ctx *gin.Context) (model.User, bool) {
-	u, exists := ctx.Get("user")
-	if !exists {
-		return model.User{}, false
-	}
-	user, ok := u.(model.User)
-	return user, ok
 }
