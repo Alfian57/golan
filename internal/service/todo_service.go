@@ -23,28 +23,32 @@ func NewTodoService(todoRepository *repository.TodoRepository, userRepository *r
 	}
 }
 
-func (s *TodoService) GetAllTodos(ctx context.Context, currentUser model.User, query dto.GetTodosFilter) ([]model.Todo, error) {
+func (s *TodoService) GetAllTodos(ctx context.Context, currentUser model.User, query dto.GetTodosFilter) (dto.PaginatedResult[model.Todo], error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	if query.Page == 0 {
-		query.Page = 1
-	}
-	if query.Limit == 0 {
-		query.Limit = 10
-	}
-	if query.Search == "" {
-		query.OrderType = "ASC"
-	}
+	query.PaginationRequest.SetDefaults()
+	query.SetOrderByDefaults()
 
 	todos, err := s.todoRepository.GetAllByUser(ctx, currentUser.ID.String(), query)
-
 	if err != nil {
-		logger.Log.Errorw("failed to get all todos", "error", err)
-		return nil, errs.NewAppError(500, "failed to retrieve todos", err)
+		logger.Log.Errorw("failed to get todos", "error", err)
+		return dto.PaginatedResult[model.Todo]{}, errs.NewAppError(500, "failed to retrieve todos", err)
 	}
 
-	return todos, nil
+	count, err := s.todoRepository.CountAllByUser(ctx, currentUser.ID.String(), query)
+	if err != nil {
+		logger.Log.Errorw("failed to count todos", "error", err)
+		return dto.PaginatedResult[model.Todo]{}, errs.NewAppError(500, "failed to retrieve todos", err)
+	}
+
+	pagination := dto.NewPaginationResponse(query.Page, query.Limit, count)
+	result := dto.PaginatedResult[model.Todo]{
+		Data:       todos,
+		Pagination: pagination,
+	}
+
+	return result, nil
 }
 
 func (s *TodoService) CreateTodo(ctx context.Context, currentUser model.User, request dto.CreateTodoRequest) error {

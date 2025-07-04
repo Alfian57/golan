@@ -9,6 +9,7 @@ import (
 	"github.com/Alfian57/belajar-golang/internal/dto"
 	errs "github.com/Alfian57/belajar-golang/internal/errors"
 	"github.com/Alfian57/belajar-golang/internal/model"
+	"github.com/Alfian57/belajar-golang/internal/utils/queryBuilder"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
@@ -31,49 +32,63 @@ func (r *TodoRepository) getTodos(ctx context.Context, query string, args ...any
 }
 
 func (r *TodoRepository) GetAll(ctx context.Context, queryParam dto.GetTodosFilter) ([]model.Todo, error) {
-	query := "SELECT id, todo, user_id, created_at, updated_at FROM todos"
-	args := []any{}
+	baseQuery := "SELECT id, todo, user_id, created_at, updated_at FROM todos"
 
-	// Search
-	query += " WHERE todo LIKE ?"
-	args = append(args, "%"+queryParam.Search+"%")
+	qb := queryBuilder.NewQueryBuilder(baseQuery)
+	qb.Search("todo", queryParam.Search).
+		OrderBy(queryParam.OrderBy, queryParam.OrderType).
+		Paginate(queryParam.PaginationRequest)
 
-	// Order
-	query += " ORDER BY created_at " + queryParam.OrderType
-
-	// Pagination
-	limit := queryParam.Limit
-	offset := 0
-	if queryParam.Page > 1 {
-		offset = (queryParam.Page - 1) * limit
-	}
-	query += " LIMIT ? OFFSET ?"
-	args = append(args, limit, offset)
-
+	query, args := qb.Build()
 	return r.getTodos(ctx, query, args...)
 }
 
 func (r *TodoRepository) GetAllByUser(ctx context.Context, userID string, queryParam dto.GetTodosFilter) ([]model.Todo, error) {
-	query := "SELECT id, todo, user_id, created_at, updated_at FROM todos WHERE user_id = ?"
-	args := []any{userID}
+	baseQuery := "SELECT id, todo, user_id, created_at, updated_at FROM todos"
 
-	// Search
-	query += " WHERE todo LIKE ?"
-	args = append(args, "%"+queryParam.Search+"%")
+	qb := queryBuilder.NewQueryBuilder(baseQuery)
+	qb.Where("user_id = ?", userID).
+		Search("todo", queryParam.Search).
+		OrderBy(queryParam.OrderBy, queryParam.OrderType).
+		Paginate(queryParam.PaginationRequest)
 
-	// Order
-	query += " ORDER BY created_at " + queryParam.OrderType
-
-	// Pagination
-	limit := queryParam.Limit
-	offset := 0
-	if queryParam.Page > 1 {
-		offset = (queryParam.Page - 1) * limit
-	}
-	query += " LIMIT ? OFFSET ?"
-	args = append(args, limit, offset)
-
+	query, args := qb.Build()
 	return r.getTodos(ctx, query, args...)
+}
+
+func (r *TodoRepository) CountAll(ctx context.Context, queryParam dto.GetTodosFilter) (int64, error) {
+	baseQuery := "SELECT COUNT(*) FROM todos"
+
+	qb := queryBuilder.NewQueryBuilder(baseQuery)
+	qb.Search("todo", queryParam.Search)
+
+	query, args := qb.BuildCount(baseQuery)
+
+	var count int64
+	err := r.db.GetContext(ctx, &count, query, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (r *TodoRepository) CountAllByUser(ctx context.Context, userID string, queryParam dto.GetTodosFilter) (int64, error) {
+	baseQuery := "SELECT COUNT(*) FROM todos"
+
+	qb := queryBuilder.NewQueryBuilder(baseQuery)
+	qb.Where("user_id = ?", userID).
+		Search("todo", queryParam.Search)
+
+	query, args := qb.BuildCount(baseQuery)
+
+	var count int64
+	err := r.db.GetContext(ctx, &count, query, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 func (r *TodoRepository) GetByID(ctx context.Context, id string) (model.Todo, error) {

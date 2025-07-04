@@ -2,13 +2,6 @@ package dto
 
 import "github.com/google/uuid"
 
-type GetTodosFilter struct {
-	Page      int    `json:"page" binding:"omitempty,number"`
-	Limit     int    `json:"limit" binding:"omitempty,number"`
-	Search    string `json:"search" binding:"omitempty"`
-	OrderType string `json:"order_type" binding:"omitempty,oneof=ASC DESC"`
-}
-
 type CreateTodoRequest struct {
 	Todo string `form:"todo" binding:"required,min=3,max=100"`
 }
@@ -16,4 +9,17 @@ type CreateTodoRequest struct {
 type UpdateTodoRequest struct {
 	ID   uuid.UUID `form:"id"`
 	Todo string    `form:"todo" binding:"required,min=3"`
+}
+
+type GetTodosFilter struct {
+	PaginationRequest
+	Search    string `json:"search" form:"search" binding:"omitempty,max=255"`
+	OrderBy   string `json:"order_by" form:"order_by" binding:"omitempty"`
+	OrderType string `json:"order_type" form:"order_type" binding:"omitempty,oneof=ASC DESC asc desc"`
+}
+
+func (f *GetTodosFilter) SetOrderByDefaults() {
+	if f.OrderType == "" {
+		f.OrderType = "ASC"
+	}
 }

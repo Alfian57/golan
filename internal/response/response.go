@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Alfian57/belajar-golang/internal/dto"
 	errs "github.com/Alfian57/belajar-golang/internal/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -15,6 +16,14 @@ type Response struct {
 	Message string `json:"message,omitempty"`
 	Data    any    `json:"data,omitempty"`
 	Error   any    `json:"error,omitempty"`
+}
+
+func WritePaginatedResponse[T any](ctx *gin.Context, statusCode int, data dto.PaginatedResult[T]) {
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(statusCode, Response{
+		Success: true,
+		Data:    data,
+	})
 }
 
 func WriteDataResponse(ctx *gin.Context, statusCode int, data any) {

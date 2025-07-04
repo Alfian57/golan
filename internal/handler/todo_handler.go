@@ -35,13 +35,13 @@ func (h *TodoHandler) GetAlltodos(ctx *gin.Context) {
 		return
 	}
 
-	todos, err := h.service.GetAllTodos(ctx, currentUser, query)
+	result, err := h.service.GetAllTodos(ctx, currentUser, query)
 	if err != nil {
 		response.WriteErrorResponse(ctx, err)
 		return
 	}
 
-	response.WriteDataResponse(ctx, http.StatusOK, todos)
+	response.WritePaginatedResponse(ctx, http.StatusOK, result)
 }
 
 func (h *TodoHandler) CreateTodo(ctx *gin.Context) {

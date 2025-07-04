@@ -12,3 +12,16 @@ type UpdateUserRequest struct {
 	ID       uuid.UUID `form:"id"`
 	Username string    `form:"username" binding:"required,min=3"`
 }
+
+type GetUsersFilter struct {
+	PaginationRequest
+	Search    string `json:"search" form:"search" binding:"omitempty,max=255"`
+	OrderBy   string `json:"order_by" form:"order_by" binding:"omitempty"`
+	OrderType string `json:"order_type" form:"order_type" binding:"omitempty,oneof=ASC DESC asc desc"`
+}
+
+func (f *GetUsersFilter) SetDefaults() {
+	if f.OrderType == "" {
+		f.OrderType = "ASC"
+	}
+}
