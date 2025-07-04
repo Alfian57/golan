@@ -32,6 +32,18 @@ func (r *TodoRepository) GetAll(ctx context.Context) ([]model.Todo, error) {
 	return todos, nil
 }
 
+func (r *TodoRepository) GetAllByUser(ctx context.Context, userID string) ([]model.Todo, error) {
+	todos := []model.Todo{}
+	query := "SELECT id, todo, user_id, created_at, updated_at FROM todos WHERE user_id = ?"
+
+	err := r.db.SelectContext(ctx, &todos, query, userID)
+	if err != nil {
+		return todos, err
+	}
+
+	return todos, nil
+}
+
 func (r *TodoRepository) GetByID(ctx context.Context, id string) (model.Todo, error) {
 	todo := model.Todo{}
 	query := "SELECT id, todo, user_id, created_at, updated_at FROM todos WHERE id = ?"

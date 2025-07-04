@@ -49,6 +49,7 @@ var (
 	ErrInternalServer = &AppError{Code: http.StatusInternalServerError, Message: "internal server error"}
 	ErrBadRequest     = &AppError{Code: http.StatusBadRequest, Message: "bad request"}
 	ErrUnauthorized   = &AppError{Code: http.StatusUnauthorized, Message: "unauthorized"}
+	ErrForbidden      = &AppError{Code: http.StatusForbidden, Message: "forbidden"}
 )
 
 func NewAppError(code int, message string, err error) *AppError {

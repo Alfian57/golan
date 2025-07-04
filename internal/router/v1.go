@@ -14,8 +14,8 @@ func RegisterV1Route(router *gin.RouterGroup) {
 
 	router.POST("/login", authHandler.Login)
 	router.POST("/register", authHandler.Register)
-	router.POST("/refreh", authHandler.Refresh)
-	router.POST("/logout", authHandler.Logout)
+	router.POST("/refresh", middleware.AuthMiddleware(), authHandler.Refresh)
+	router.POST("/logout", middleware.AuthMiddleware(), authHandler.Logout)
 
 	users := router.Group("users", middleware.AuthMiddleware())
 	{
@@ -24,7 +24,6 @@ func RegisterV1Route(router *gin.RouterGroup) {
 		users.GET("/:id", userHandler.GetUserByID)
 		users.PUT("/:id", userHandler.UpdateUser)
 		users.DELETE("/:id", userHandler.DeleteUser)
-		// router.DELETE("/users/:id/todos", userHandler.GetUserTodos)
 	}
 
 	todos := router.Group("todos", middleware.AuthMiddleware())

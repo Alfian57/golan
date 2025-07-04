@@ -35,8 +35,8 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 	accessTokenMaxAge := 15 * 60        // 15 minutes in seconds
 	refreshTokenMaxAge := 7 * 24 * 3600 // 7 days in seconds
 
-	ctx.SetCookie("access_token", credentials.AccessToken, accessTokenMaxAge, "/", "", true, true)
-	ctx.SetCookie("refresh_token", credentials.RefreshToken, refreshTokenMaxAge, "/", "", true, true)
+	ctx.SetCookie("access_token", credentials.AccessToken, accessTokenMaxAge, "/", "", false, true)
+	ctx.SetCookie("refresh_token", credentials.RefreshToken, refreshTokenMaxAge, "/", "", false, true)
 
 	response.WriteMessageResponse(ctx, http.StatusOK, "user successfully logged in")
 }

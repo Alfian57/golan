@@ -20,6 +20,11 @@ func InitializeUserHandler() *handler.UserHandler {
 	return &handler.UserHandler{}
 }
 
+func InitializeUserService() *service.UserService {
+	wire.Build(service.NewUserService, repository.NewUserRepository)
+	return &service.UserService{}
+}
+
 func InitializeTodoHandler() *handler.TodoHandler {
 	wire.Build(handler.NewTodoHandler, service.NewTodoService, repository.NewTodoRepository, repository.NewUserRepository)
 	return &handler.TodoHandler{}

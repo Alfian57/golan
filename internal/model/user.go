@@ -25,3 +25,8 @@ func (u *User) SetHashedPassword(password string) error {
 
 	return nil
 }
+
+func (u *User) CheckHashedPassword(password string) error {
+	err := hash.CheckPasswordHash(password, u.Password)
+	return err
+}

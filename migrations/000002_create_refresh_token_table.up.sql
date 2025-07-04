@@ -1,9 +1,9 @@
 CREATE TABLE refresh_tokens (
     id CHAR(36) PRIMARY KEY,
-    user_id CHAR(36) UNIQUE NOT NULL,
+    user_id CHAR(36) NOT NULL,
     token_hash VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
-    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at BIGINT UNSIGNED NOT NULL,
 
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

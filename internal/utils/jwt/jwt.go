@@ -18,7 +18,9 @@ func CreateAccessToken(user model.User) (string, error) {
 	})
 
 	secret := config.GetEnv("ACCESS_TOKEN_SECRET", "secret")
-	tokenString, err := token.SignedString(secret)
+	secretByte := []byte(secret)
+
+	tokenString, err := token.SignedString(secretByte)
 	return tokenString, err
 }
 
@@ -30,25 +32,44 @@ func CreateRefreshToken(user model.User) (string, error) {
 	})
 
 	secret := config.GetEnv("REFRESH_TOKEN_SECRET", "secret")
-	tokenString, err := token.SignedString(secret)
+	secretByte := []byte(secret)
+
+	tokenString, err := token.SignedString(secretByte)
 	return tokenString, err
 }
 
-func ValidateAccessToken(tokenString string) (bool, error) {
-	token, err := jwt.Parse(tokenString, func(token *golangJwt.Token) (interface{}, error) {
+func ValidateAccessToken(tokenString string) (string, error) {
+	token, err := jwt.Parse(tokenString, func(token *golangJwt.Token) (any, error) {
 		secret := config.GetEnv("ACCESS_TOKEN_SECRET", "secret")
 		secretByte := []byte(secret)
 		return secretByte, nil
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
-	if _, ok := token.Claims.(golangJwt.MapClaims); ok {
-		// fmt.Println(claims["foo"], claims["nbf"])
-		return true, nil
+	if claims, ok := token.Claims.(golangJwt.MapClaims); ok {
+		return claims["id"].(string), nil
 	}
 
-	return false, err
+	return "", err
+}
+
+func GetUserID(tokenString string) (string, error) {
+	token, err := jwt.Parse(tokenString, func(token *golangJwt.Token) (any, error) {
+		secret := config.GetEnv("ACCESS_TOKEN_SECRET", "secret")
+		secretByte := []byte(secret)
+		return secretByte, nil
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
+
+	if err != nil {
+		return "", err
+	}
+
+	if claims, ok := token.Claims.(golangJwt.MapClaims); ok {
+		return claims["id"].(string), nil
+	}
+
+	return "", err
 }

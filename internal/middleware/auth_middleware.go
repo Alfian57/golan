@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"net/http"
-
+	"github.com/Alfian57/belajar-golang/internal/di"
+	errs "github.com/Alfian57/belajar-golang/internal/errors"
 	"github.com/Alfian57/belajar-golang/internal/response"
 	"github.com/Alfian57/belajar-golang/internal/utils/jwt"
 	"github.com/gin-gonic/gin"
@@ -10,19 +10,37 @@ import (
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		authService := di.InitializeUserService()
+
 		accessToken, err := ctx.Cookie("access_token")
 		if err != nil {
-			response.WriteErrorResponse(ctx, err)
+			response.WriteErrorResponse(ctx, errs.ErrUnauthorized)
+			ctx.Abort()
+			return
 		}
 
-		isValid, err := jwt.ValidateAccessToken(accessToken)
+		userID, err := jwt.ValidateAccessToken(accessToken)
 		if err != nil {
-			response.WriteErrorResponse(ctx, err)
+			response.WriteErrorResponse(ctx, errs.ErrUnauthorized)
+			ctx.Abort()
+			return
 		}
 
-		if !isValid {
-			response.WriteMessageResponse(ctx, http.StatusUnauthorized, "unauthorized")
+		if userID == "" {
+			response.WriteErrorResponse(ctx, errs.ErrUnauthorized)
+			ctx.Abort()
+			return
 		}
+
+		user, err := authService.GetUserByID(ctx, userID)
+		if err != nil {
+			response.WriteErrorResponse(ctx, errs.ErrUnauthorized)
+			ctx.Abort()
+			return
+		}
+
+		ctx.Set("access_token", accessToken)
+		ctx.Set("user", user)
 
 		ctx.Next()
 	}

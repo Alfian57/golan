@@ -11,13 +11,13 @@ import (
 )
 
 type Response struct {
-	Success bool        `json:"success"`
-	Message string      `json:"message,omitempty"`
-	Data    interface{} `json:"data,omitempty"`
-	Error   interface{} `json:"error,omitempty"`
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
+	Data    any    `json:"data,omitempty"`
+	Error   any    `json:"error,omitempty"`
 }
 
-func WriteDataResponse(ctx *gin.Context, statusCode int, data interface{}) {
+func WriteDataResponse(ctx *gin.Context, statusCode int, data any) {
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(statusCode, Response{
 		Success: true,

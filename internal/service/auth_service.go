@@ -10,7 +10,6 @@ import (
 	"github.com/Alfian57/belajar-golang/internal/logger"
 	"github.com/Alfian57/belajar-golang/internal/model"
 	"github.com/Alfian57/belajar-golang/internal/repository"
-	"github.com/Alfian57/belajar-golang/internal/utils/hash"
 	"github.com/Alfian57/belajar-golang/internal/utils/jwt"
 )
 
@@ -40,7 +39,7 @@ func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (dto.Cred
 		return credentials, errs.NewAppError(http.StatusInternalServerError, "failed to get user", err)
 	}
 
-	if err := hash.CheckPasswordHash(req.Password, user.Password); err != nil {
+	if err := user.CheckHashedPassword(req.Password); err != nil {
 		return credentials, errs.NewAppError(http.StatusUnauthorized, "username or password is incorrect", err)
 	}
 
@@ -60,6 +59,7 @@ func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (dto.Cred
 		ExpiresAt: time.Now().Add(7 * 24 * time.Hour).Unix(),
 	}
 	if err := s.refreshTokenRepository.Create(ctx, rt); err != nil {
+		logger.Log.Info("error bwang", err)
 		return credentials, errs.NewAppError(http.StatusInternalServerError, "failed to save refresh token", err)
 	}
 

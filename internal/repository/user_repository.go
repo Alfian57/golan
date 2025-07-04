@@ -22,7 +22,7 @@ func NewUserRepository() *UserRepository {
 
 func (r *UserRepository) GetAll(ctx context.Context) ([]model.User, error) {
 	users := []model.User{}
-	query := "SELECT id, username, created_at, updated_at FROM users"
+	query := "SELECT id, username, password, created_at, updated_at FROM users"
 
 	err := r.db.SelectContext(ctx, &users, query)
 
@@ -39,7 +39,7 @@ func (r *UserRepository) Create(ctx context.Context, user *model.User) error {
 
 func (r *UserRepository) GetByID(ctx context.Context, id string) (model.User, error) {
 	user := model.User{}
-	query := "SELECT id, username, created_at, updated_at FROM users WHERE id = ?"
+	query := "SELECT id, username, password, created_at, updated_at FROM users WHERE id = ?"
 
 	err := r.db.GetContext(ctx, &user, query, id)
 	if err != nil {
@@ -54,7 +54,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id string) (model.User, er
 
 func (r *UserRepository) GetByUsername(ctx context.Context, username string) (model.User, error) {
 	user := model.User{}
-	query := "SELECT id, username, created_at, updated_at FROM users WHERE username = ?"
+	query := "SELECT id, username, password, created_at, updated_at FROM users WHERE username = ?"
 
 	err := r.db.GetContext(ctx, &user, query, username)
 	if err != nil {

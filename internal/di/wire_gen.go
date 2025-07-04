@@ -29,6 +29,12 @@ func InitializeUserHandler() *handler.UserHandler {
 	return userHandler
 }
 
+func InitializeUserService() *service.UserService {
+	userRepository := repository.NewUserRepository()
+	userService := service.NewUserService(userRepository)
+	return userService
+}
+
 func InitializeTodoHandler() *handler.TodoHandler {
 	todoRepository := repository.NewTodoRepository()
 	userRepository := repository.NewUserRepository()
