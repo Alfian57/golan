@@ -46,14 +46,15 @@ func (h *UserHandler) CreateUser(ctx *gin.Context) {
 }
 
 func (h *UserHandler) GetUserByID(ctx *gin.Context) {
-	id := ctx.Param("id")
+	idParam := ctx.Param("id")
 
-	if _, err := uuid.Parse(id); err != nil {
+	id, err := uuid.Parse(idParam)
+	if err != nil {
 		response.WriteErrorResponse(ctx, err)
 		return
 	}
 
-	user, err := h.service.GetUserByID(ctx, id)
+	user, err := h.service.GetUserByID(ctx, id.String())
 	if err != nil {
 		response.WriteErrorResponse(ctx, err)
 		return
@@ -85,9 +86,10 @@ func (h *UserHandler) UpdateUser(ctx *gin.Context) {
 }
 
 func (h *UserHandler) DeleteUser(ctx *gin.Context) {
-	id := ctx.Param("id")
+	idParam := ctx.Param("id")
 
-	if _, err := uuid.Parse(id); err != nil {
+	id, err := uuid.Parse(idParam)
+	if err != nil {
 		response.WriteErrorResponse(ctx, err)
 		return
 	}

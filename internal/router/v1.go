@@ -28,7 +28,7 @@ func RegisterV1Route(router *gin.RouterGroup) {
 
 	todos := router.Group("todos", middleware.AuthMiddleware())
 	{
-		todos.GET("/", todoHandler.GetAlltodos)
+		todos.GET("/", todoHandler.GetAllTodos)
 		todos.POST("/", todoHandler.CreateTodo)
 		todos.GET("/:id", todoHandler.GetTodoByID)
 		todos.PUT("/:id", todoHandler.UpdateTodo)

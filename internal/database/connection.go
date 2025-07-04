@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Alfian57/belajar-golang/internal/config"
 	"github.com/Alfian57/belajar-golang/internal/logger"
@@ -12,20 +13,25 @@ import (
 var DB *sqlx.DB
 
 func Init(config config.DatabaseConfig) {
+	// Initialize the database connection string
 	databaseConnection := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true", config.Username, config.Password, config.Host, config.Port, config.Name)
 
+	// Open a new database connection
 	var err error
 	DB, err = sqlx.Open("mysql", databaseConnection)
 	if err != nil {
-		messageLog := fmt.Sprintf("error opening database connection: %v", err)
-		logger.Log.Fatalf(messageLog)
+		logger.Log.Fatalf("error opening database connection: %v", err)
 	}
 
+	// Configure connection pool
+	DB.SetMaxOpenConns(25)                 // Maximum number of open connections
+	DB.SetMaxIdleConns(25)                 // Maximum number of idle connections
+	DB.SetConnMaxLifetime(5 * time.Minute) // Maximum connection lifetime
+
+	// Ping the database to ensure the connection is established
 	if err = DB.Ping(); err != nil {
-		messageLog := fmt.Sprintf("failed to ping database: %v", err)
-		logger.Log.DPanicln(messageLog)
-	} else {
-		messageLog := "successfully connected to the database"
-		logger.Log.Infoln(messageLog)
+		logger.Log.Fatalf("failed to ping database: %v", err)
 	}
+
+	logger.Log.Infoln("successfully connected to the database")
 }

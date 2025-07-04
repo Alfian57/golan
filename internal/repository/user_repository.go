@@ -30,10 +30,9 @@ func (r *UserRepository) GetAll(ctx context.Context) ([]model.User, error) {
 }
 
 func (r *UserRepository) Create(ctx context.Context, user *model.User) error {
+	user.ID = uuid.New()
 	query := "INSERT INTO users(id, username, password) VALUES (?, ?, ?)"
-
-	_, err := r.db.ExecContext(ctx, query, uuid.New().String(), user.Username, user.Password)
-
+	_, err := r.db.ExecContext(ctx, query, user.ID.String(), user.Username, user.Password)
 	return err
 }
 
@@ -81,9 +80,12 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 	}
 
 	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
 	if rowsAffected == 0 {
 		return errs.ErrUserNotFound
 	}
 
-	return err
+	return nil
 }

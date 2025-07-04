@@ -18,7 +18,8 @@ type GetTodosFilter struct {
 	OrderType string `json:"order_type" form:"order_type" binding:"omitempty,oneof=ASC DESC asc desc"`
 }
 
-func (f *GetTodosFilter) SetOrderByDefaults() {
+func (f *GetTodosFilter) SetDefaults() {
+	f.PaginationRequest.SetDefaults()
 	if f.OrderType == "" {
 		f.OrderType = "ASC"
 	}

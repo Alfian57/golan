@@ -22,7 +22,7 @@ func NewTodoHandler(s *service.TodoService) *TodoHandler {
 	}
 }
 
-func (h *TodoHandler) GetAlltodos(ctx *gin.Context) {
+func (h *TodoHandler) GetAllTodos(ctx *gin.Context) {
 	var query dto.GetTodosFilter
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		response.WriteErrorResponse(ctx, err)

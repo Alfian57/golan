@@ -54,7 +54,7 @@ func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (dto.Cred
 	}
 
 	rt := &model.RefreshToken{
-		UserID:    user.ID.String(),
+		UserID:    user.ID,
 		TokenHash: refreshToken,
 		ExpiresAt: time.Now().Add(7 * 24 * time.Hour).Unix(),
 	}
@@ -117,7 +117,7 @@ func (s *AuthService) Refresh(ctx context.Context, refreshTokenParam string) (dt
 		return credentials, errs.NewAppError(http.StatusInternalServerError, "failed to get refresh token", err)
 	}
 
-	user, err := s.userRepository.GetByID(ctx, refreshToken.UserID)
+	user, err := s.userRepository.GetByID(ctx, refreshToken.UserID.String())
 	if err != nil {
 		return credentials, errs.NewAppError(http.StatusInternalServerError, "failed to get user", err)
 	}
@@ -138,7 +138,7 @@ func (s *AuthService) Refresh(ctx context.Context, refreshTokenParam string) (dt
 	}
 
 	rt := &model.RefreshToken{
-		UserID:    user.ID.String(),
+		UserID:    user.ID,
 		TokenHash: newRefreshToken,
 		ExpiresAt: time.Now().Add(7 * 24 * time.Hour).Unix(),
 	}

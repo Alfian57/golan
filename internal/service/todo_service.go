@@ -28,7 +28,7 @@ func (s *TodoService) GetAllTodos(ctx context.Context, currentUser model.User, q
 	defer cancel()
 
 	query.PaginationRequest.SetDefaults()
-	query.SetOrderByDefaults()
+	query.SetDefaults()
 
 	todos, err := s.todoRepository.GetAllByUser(ctx, currentUser.ID.String(), query)
 	if err != nil {
@@ -57,7 +57,7 @@ func (s *TodoService) CreateTodo(ctx context.Context, currentUser model.User, re
 
 	todo := model.Todo{
 		Todo:   request.Todo,
-		UserID: currentUser.ID.String(),
+		UserID: currentUser.ID,
 	}
 
 	if err := s.todoRepository.Create(ctx, &todo); err != nil {
@@ -82,7 +82,7 @@ func (s *TodoService) GetTodoByID(ctx context.Context, currentUser model.User, i
 		return model.Todo{}, errs.NewAppError(500, "failed to get todo", err)
 	}
 
-	if todo.UserID != currentUser.ID.String() {
+	if todo.UserID != currentUser.ID {
 		logger.Log.Errorw("forbidden", "id", id, "error", errs.ErrForbidden)
 		return model.Todo{}, errs.ErrForbidden
 	}
@@ -103,7 +103,7 @@ func (s *TodoService) UpdateTodo(ctx context.Context, currentUser model.User, re
 		return errs.NewAppError(500, "failed to get todo", err)
 	}
 
-	if todo.UserID != currentUser.ID.String() {
+	if todo.UserID != currentUser.ID {
 		logger.Log.Errorw("forbidden", "id", request.ID.String(), "error", errs.ErrForbidden)
 		return errs.ErrForbidden
 	}
@@ -120,7 +120,7 @@ func (s *TodoService) UpdateTodo(ctx context.Context, currentUser model.User, re
 	updatedTodo := model.Todo{
 		ID:     request.ID,
 		Todo:   request.Todo,
-		UserID: currentUser.ID.String(),
+		UserID: currentUser.ID,
 	}
 
 	if err := s.todoRepository.Update(ctx, &updatedTodo); err != nil {
@@ -145,7 +145,7 @@ func (s *TodoService) DeleteTodo(ctx context.Context, currentUser model.User, id
 		return errs.NewAppError(500, "failed to get todo", err)
 	}
 
-	if todo.UserID != currentUser.ID.String() {
+	if todo.UserID != currentUser.ID {
 		logger.Log.Errorw("forbidden", "id", id, "error", errs.ErrForbidden)
 		return errs.ErrForbidden
 	}

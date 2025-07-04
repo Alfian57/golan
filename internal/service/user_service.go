@@ -9,6 +9,7 @@ import (
 	"github.com/Alfian57/belajar-golang/internal/logger"
 	"github.com/Alfian57/belajar-golang/internal/model"
 	"github.com/Alfian57/belajar-golang/internal/repository"
+	"github.com/google/uuid"
 )
 
 type UserService struct {
@@ -91,6 +92,7 @@ func (s *UserService) UpdateUser(ctx context.Context, request dto.UpdateUserRequ
 		if err == errs.ErrUserNotFound {
 			return err
 		}
+
 		logger.Log.Errorw("failed to check user existence for update", "id", request.ID, "error", err)
 		return errs.NewAppError(500, "failed to validate user", err)
 	}
@@ -120,11 +122,11 @@ func (s *UserService) UpdateUser(ctx context.Context, request dto.UpdateUserRequ
 	return nil
 }
 
-func (s *UserService) DeleteUser(ctx context.Context, id string) error {
+func (s *UserService) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	if err := s.userRepository.Delete(ctx, id); err != nil {
+	if err := s.userRepository.Delete(ctx, id.String()); err != nil {
 		if err == errs.ErrUserNotFound {
 			return err
 		}
