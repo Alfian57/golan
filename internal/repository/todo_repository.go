@@ -34,7 +34,6 @@ func (r *TodoRepository) getTodos(ctx context.Context, query string, args ...any
 func (r *TodoRepository) GetAll(ctx context.Context, queryParam dto.GetTodosFilter) ([]model.Todo, error) {
 	baseQuery := "SELECT id, todo, user_id, created_at, updated_at FROM todos"
 
-	// Create a new query builder with the base query
 	qb := queryBuilder.NewQueryBuilder(baseQuery)
 	qb.Search("todo", queryParam.Search).
 		OrderBy(queryParam.OrderBy, queryParam.OrderType).
@@ -47,7 +46,6 @@ func (r *TodoRepository) GetAll(ctx context.Context, queryParam dto.GetTodosFilt
 func (r *TodoRepository) GetAllByUser(ctx context.Context, userID string, queryParam dto.GetTodosFilter) ([]model.Todo, error) {
 	baseQuery := "SELECT id, todo, user_id, created_at, updated_at FROM todos"
 
-	// Create a new query builder with the base query
 	qb := queryBuilder.NewQueryBuilder(baseQuery)
 	qb.Where("user_id = ?", userID).
 		Search("todo", queryParam.Search).

@@ -14,13 +14,6 @@ type UpdateTodoRequest struct {
 type GetTodosFilter struct {
 	PaginationRequest
 	Search    string `json:"search" form:"search" binding:"omitempty,max=255"`
-	OrderBy   string `json:"order_by" form:"order_by" binding:"omitempty"`
+	OrderBy   string `json:"order_by" form:"order_by" binding:"omitempty,oneof=todo created_at"`
 	OrderType string `json:"order_type" form:"order_type" binding:"omitempty,oneof=ASC DESC asc desc"`
-}
-
-func (f *GetTodosFilter) SetDefaults() {
-	f.PaginationRequest.SetDefaults()
-	if f.OrderType == "" {
-		f.OrderType = "ASC"
-	}
 }

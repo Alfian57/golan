@@ -6,8 +6,10 @@ import (
 	"errors"
 
 	"github.com/Alfian57/belajar-golang/internal/database"
+	"github.com/Alfian57/belajar-golang/internal/dto"
 	errs "github.com/Alfian57/belajar-golang/internal/errors"
 	"github.com/Alfian57/belajar-golang/internal/model"
+	"github.com/Alfian57/belajar-golang/internal/utils/queryBuilder"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
@@ -20,13 +22,35 @@ func NewUserRepository() *UserRepository {
 	return &UserRepository{db: database.DB}
 }
 
-func (r *UserRepository) GetAll(ctx context.Context) ([]model.User, error) {
+func (r *UserRepository) GetAll(ctx context.Context, queryParam dto.GetUsersFilter) ([]model.User, error) {
 	users := []model.User{}
-	query := "SELECT id, username, password, created_at, updated_at FROM users"
+	baseQuery := "SELECT id, username, password, created_at, updated_at FROM users"
 
-	err := r.db.SelectContext(ctx, &users, query)
+	qb := queryBuilder.NewQueryBuilder(baseQuery)
+	qb.Search("username", queryParam.Search).
+		OrderBy(queryParam.OrderBy, queryParam.OrderType).
+		Paginate(queryParam.PaginationRequest)
 
+	query, args := qb.Build()
+	err := r.db.SelectContext(ctx, &users, query, args...)
 	return users, err
+}
+
+func (r *UserRepository) CountAll(ctx context.Context, queryParam dto.GetUsersFilter) (int64, error) {
+	baseQuery := "SELECT COUNT(*) FROM users"
+
+	qb := queryBuilder.NewQueryBuilder(baseQuery)
+	qb.Search("username", queryParam.Search)
+
+	query, args := qb.BuildCount(baseQuery)
+
+	var count int64
+	err := r.db.GetContext(ctx, &count, query, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 func (r *UserRepository) Create(ctx context.Context, user *model.User) error {

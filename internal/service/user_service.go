@@ -22,16 +22,29 @@ func NewUserService(r *repository.UserRepository) *UserService {
 	}
 }
 
-func (s *UserService) GetAllUsers(ctx context.Context) ([]model.User, error) {
+func (s *UserService) GetAllUsers(ctx context.Context, query dto.GetUsersFilter) (dto.PaginatedResult[model.User], error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	users, err := s.userRepository.GetAll(ctx)
+	users, err := s.userRepository.GetAll(ctx, query)
 	if err != nil {
 		logger.Log.Errorw("failed to get all users", "error", err)
-		return nil, errs.NewAppError(500, "failed to retrieve users", err)
+		return dto.PaginatedResult[model.User]{}, errs.NewAppError(500, "failed to retrieve users", err)
 	}
-	return users, nil
+
+	count, err := s.userRepository.CountAll(ctx, query)
+	if err != nil {
+		logger.Log.Errorw("failed to count todos", "error", err)
+		return dto.PaginatedResult[model.User]{}, errs.NewAppError(500, "failed to retrieve todos", err)
+	}
+
+	pagination := dto.NewPaginationResponse(query.Page, query.Limit, count)
+	result := dto.PaginatedResult[model.User]{
+		Data:       users,
+		Pagination: pagination,
+	}
+
+	return result, nil
 }
 
 func (s *UserService) CreateUser(ctx context.Context, request dto.CreateUserRequest) error {

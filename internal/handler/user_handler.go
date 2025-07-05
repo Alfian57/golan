@@ -21,13 +21,19 @@ func NewUserHandler(s *service.UserService) *UserHandler {
 }
 
 func (h *UserHandler) GetAllUsers(ctx *gin.Context) {
-	users, err := h.service.GetAllUsers(ctx)
+	var query dto.GetUsersFilter
+	if err := ctx.ShouldBindQuery(&query); err != nil {
+		response.WriteErrorResponse(ctx, err)
+		return
+	}
+
+	result, err := h.service.GetAllUsers(ctx, query)
 	if err != nil {
 		response.WriteErrorResponse(ctx, err)
 		return
 	}
 
-	response.WriteDataResponse(ctx, http.StatusOK, users)
+	response.WritePaginatedResponse(ctx, http.StatusOK, result)
 }
 
 func (h *UserHandler) CreateUser(ctx *gin.Context) {

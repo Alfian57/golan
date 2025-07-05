@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Alfian57/belajar-golang/internal/dto"
+	"github.com/Alfian57/belajar-golang/internal/logger"
 )
 
 type QueryBuilder struct {
@@ -25,6 +26,8 @@ func NewQueryBuilder(baseQuery string) *QueryBuilder {
 func (qb *QueryBuilder) Where(condition string, args ...any) *QueryBuilder {
 	qb.whereClause = append(qb.whereClause, condition)
 	qb.args = append(qb.args, args...)
+
+	logger.Log.Infow("QueryBuilder Where condition", "args", args)
 	return qb
 }
 
@@ -49,11 +52,13 @@ func (qb *QueryBuilder) OrderBy(column, orderType string) *QueryBuilder {
 }
 
 func (qb *QueryBuilder) Paginate(pagination dto.PaginationRequest) *QueryBuilder {
+	pagination.SetDefaults()
+
 	qb.args = append(qb.args, pagination.Limit, pagination.GetOffset())
 	return qb
 }
 
-func (qb *QueryBuilder) Build() (string, []interface{}) {
+func (qb *QueryBuilder) Build() (string, []any) {
 	query := qb.baseQuery
 
 	if len(qb.whereClause) > 0 {
@@ -71,17 +76,12 @@ func (qb *QueryBuilder) Build() (string, []interface{}) {
 	return query, qb.args
 }
 
-func (qb *QueryBuilder) BuildCount(countQuery string) (string, []interface{}) {
+func (qb *QueryBuilder) BuildCount(countQuery string) (string, []any) {
 	query := countQuery
 
 	if len(qb.whereClause) > 0 {
 		query += " WHERE " + strings.Join(qb.whereClause, " AND ")
 	}
 
-	argsWithoutPagination := qb.args
-	if len(qb.args) >= 2 {
-		argsWithoutPagination = qb.args[:len(qb.args)-2]
-	}
-
-	return query, argsWithoutPagination
+	return query, qb.args
 }

@@ -12,17 +12,19 @@ import (
 )
 
 type Response struct {
-	Success bool   `json:"success"`
-	Message string `json:"message,omitempty"`
-	Data    any    `json:"data,omitempty"`
-	Error   any    `json:"error,omitempty"`
+	Success    bool   `json:"success"`
+	Message    string `json:"message,omitempty"`
+	Data       any    `json:"data,omitempty"`
+	Error      any    `json:"error,omitempty"`
+	Pagination any    `json:"pagination,omitempty"`
 }
 
-func WritePaginatedResponse[T any](ctx *gin.Context, statusCode int, data dto.PaginatedResult[T]) {
+func WritePaginatedResponse[T any](ctx *gin.Context, statusCode int, result dto.PaginatedResult[T]) {
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(statusCode, Response{
-		Success: true,
-		Data:    data,
+		Success:    true,
+		Data:       result.Data,
+		Pagination: result.Pagination,
 	})
 }
 

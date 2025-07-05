@@ -27,9 +27,6 @@ func (s *TodoService) GetAllTodos(ctx context.Context, currentUser model.User, q
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	query.PaginationRequest.SetDefaults()
-	query.SetDefaults()
-
 	todos, err := s.todoRepository.GetAllByUser(ctx, currentUser.ID.String(), query)
 	if err != nil {
 		logger.Log.Errorw("failed to get todos", "error", err)
